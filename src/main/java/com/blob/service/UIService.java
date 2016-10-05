@@ -12,12 +12,19 @@ import org.springframework.stereotype.Service;
 
 import com.blob.dao.CandidateAddressDao;
 import com.blob.dao.CandidateContactDao;
+import com.blob.dao.CandidateEducationDao;
+import com.blob.dao.CandidateOccupationDao;
 import com.blob.dao.master.MasterBloodGroupDao;
 import com.blob.dao.master.MasterCountryDao;
 import com.blob.dao.master.MasterDayOfWeekDao;
+import com.blob.dao.master.MasterDegreeDao;
+import com.blob.dao.master.MasterDegreeSpecializationDao;
+import com.blob.dao.master.MasterDesignationDao;
 import com.blob.dao.master.MasterMaritalStatusDao;
+import com.blob.dao.master.MasterOccupationDao;
 import com.blob.dao.master.MasterRelationshipDao;
 import com.blob.dao.master.MasterStateDao;
+import com.blob.dao.master.MasterYearlyIncomeDao;
 import com.blob.enums.StatusEnum;
 import com.blob.model.Candidate;
 import com.blob.model.CandidateAddress;
@@ -29,6 +36,7 @@ import com.blob.model.CandidateOccupation;
 import com.blob.model.CandidatePersonalDetail;
 import com.blob.model.ui.ContactInfo;
 import com.blob.model.ui.DashboardInfo;
+import com.blob.model.ui.EduOccuInfo;
 import com.blob.model.ui.FamilyInfo;
 import com.blob.model.ui.PersonalInfo;
 import com.blob.util.DateUtils;
@@ -58,10 +66,31 @@ public class UIService {
 	private MasterCountryDao masterCountryDao;
 	
 	@Resource
+	private MasterDegreeDao masterDegreeDao;
+	
+	@Resource
+	private MasterDegreeSpecializationDao masterDegreeSpecializationDao;
+	
+	@Resource
+	private MasterDesignationDao masterDesignationDao;
+	
+	@Resource
+	private MasterOccupationDao masterOccupationDao;
+	
+	@Resource
+	private MasterYearlyIncomeDao masterYearlyIncomeDao;
+	
+	@Resource
 	private CandidateContactDao candidateContactDao;
 	
 	@Resource
 	private CandidateAddressDao candidateAddressDao;
+	
+	@Resource
+	private CandidateEducationDao candidateEducationDao;
+	
+	@Resource
+	private CandidateOccupationDao candidateOccupationDao;
 	
 	@Resource
 	private UiUtils uiUtils;
@@ -426,5 +455,257 @@ public class UIService {
 			}
 		}
 		return resp;
+	}
+	
+	public EduOccuInfo getEducationInfoSectionForUI(Candidate candidate){
+		EduOccuInfo eduOccuInfo = new EduOccuInfo();
+		if(candidate != null){
+			List<CandidateEducation> educations = candidate.getCandidateEducations();
+			if(educations != null && !educations.isEmpty()){
+				if(educations.size() >= 2){
+					//	additional validation to only show 2 educations
+					List<CandidateEducation> educationList = new ArrayList<>(2);
+					
+					CandidateEducation cc = educations.get(0);
+					if(cc.getDegree() != null && cc.getDegree().getId() != null && cc.getDegree().getId() > 0){
+						cc.setDegreeId(cc.getDegree().getId());
+						if(cc.getDegree().getDegree().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNoneBlank(cc.getOtherDegree())){
+							cc.setDegreeStr(cc.getOtherDegree());
+						}else{
+							cc.setDegreeStr(cc.getDegree().getDegree());
+						}
+					}
+					if(cc.getSpecialization() != null && cc.getSpecialization().getId() != null && cc.getSpecialization().getId() > 0){
+						cc.setSpecializationId(cc.getSpecialization().getId());
+						if(StringUtils.isNotBlank(cc.getDegreeStr())){
+							if(cc.getSpecialization().getSpecialization().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNotBlank(cc.getOtherSpecialization())){
+								cc.setDegreeStr(cc.getDegreeStr()+" ("+cc.getOtherSpecialization()+")"); 
+							}else {
+								cc.setDegreeStr(cc.getDegreeStr()+" ("+cc.getSpecialization().getSpecialization()+")");
+							}
+						}
+					}
+					educationList.add(cc);
+					
+					cc = educations.get(1);
+					if(cc.getDegree() != null && cc.getDegree().getId() != null && cc.getDegree().getId() > 0){
+						cc.setDegreeId(cc.getDegree().getId());
+						if(cc.getDegree().getDegree().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNoneBlank(cc.getOtherDegree())){
+							cc.setDegreeStr(cc.getOtherDegree());
+						}else{
+							cc.setDegreeStr(cc.getDegree().getDegree());
+						}
+					}
+					if(cc.getSpecialization() != null && cc.getSpecialization().getId() != null && cc.getSpecialization().getId() > 0){
+						cc.setSpecializationId(cc.getSpecialization().getId());
+						if(StringUtils.isNotBlank(cc.getDegreeStr())){
+							if(cc.getSpecialization().getSpecialization().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNotBlank(cc.getOtherSpecialization())){
+								cc.setDegreeStr(cc.getDegreeStr()+" ("+cc.getOtherSpecialization()+")"); 
+							}else {
+								cc.setDegreeStr(cc.getDegreeStr()+" ("+cc.getSpecialization().getSpecialization()+")");
+							}
+						}
+					}
+
+					educationList.add(cc);
+					educations = educationList;
+				}else if(educations.size() == 1){
+					List<CandidateEducation> educationList = new ArrayList<>(2);
+					CandidateEducation cc = educations.get(0);
+					if(cc.getDegree() != null && cc.getDegree().getId() != null && cc.getDegree().getId() > 0){
+						cc.setDegreeId(cc.getDegree().getId());
+						if(cc.getDegree().getDegree().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNoneBlank(cc.getOtherDegree())){
+							cc.setDegreeStr(cc.getOtherDegree());
+						}else{
+							cc.setDegreeStr(cc.getDegree().getDegree());
+						}
+					}
+					if(cc.getSpecialization() != null && cc.getSpecialization().getId() != null && cc.getSpecialization().getId() > 0){
+						cc.setSpecializationId(cc.getSpecialization().getId());
+						if(StringUtils.isNotBlank(cc.getDegreeStr())){
+							if(cc.getSpecialization().getSpecialization().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNotBlank(cc.getOtherSpecialization())){
+								cc.setDegreeStr(cc.getDegreeStr()+" ("+cc.getOtherSpecialization()+")"); 
+							}else {
+								cc.setDegreeStr(cc.getDegreeStr()+" ("+cc.getSpecialization().getSpecialization()+")");
+							}
+						}
+					}
+					
+					educationList.add(cc);
+					educationList.add(new CandidateEducation());
+					educations = educationList;
+				}
+			}else{
+				educations = new ArrayList<>(2);
+				educations.add(new CandidateEducation());
+				educations.add(new CandidateEducation());
+			}
+			eduOccuInfo.setEducations(educations);
+			List<CandidateOccupation> occupations = candidate.getCandidateOccupations();
+			if(occupations != null && !occupations.isEmpty()){
+				if(occupations.size() >= 2){
+					//	additional validation to only show 2 occupations
+					List<CandidateOccupation> occupationList = new ArrayList<>(2);
+					CandidateOccupation cc = occupations.get(0);
+					if(cc.getOccupation() != null && cc.getOccupation().getId() != null && cc.getOccupation().getId() > 0){
+						cc.setOccupationId(cc.getOccupation().getId());
+						if(cc.getOccupation().getOccupation().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNoneBlank(cc.getOtherOccupation())){
+							cc.setOccupationStr(cc.getOtherOccupation());
+						}else{
+							cc.setOccupationStr(cc.getOccupation().getOccupation());
+						}
+					}
+					if(cc.getDesignation() != null && cc.getDesignation().getId() != null && cc.getDesignation().getId() > 0){
+						cc.setDesignationId(cc.getDesignation().getId());
+						if(cc.getDesignation().getDesignation().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNoneBlank(cc.getOtherDesignation())){
+							cc.setOccupationStr(cc.getOccupationStr()+" ("+cc.getOtherDesignation()+")");
+						}else{
+							cc.setOccupationStr(cc.getOccupationStr()+" ("+cc.getDesignation().getDesignation()+")");
+						}
+					}
+					occupationList.add(cc);
+					
+					cc = occupations.get(1);
+					if(cc.getOccupation() != null && cc.getOccupation().getId() != null && cc.getOccupation().getId() > 0){
+						cc.setOccupationId(cc.getOccupation().getId());
+						if(cc.getOccupation().getOccupation().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNoneBlank(cc.getOtherOccupation())){
+							cc.setOccupationStr(cc.getOtherOccupation());
+						}else{
+							cc.setOccupationStr(cc.getOccupation().getOccupation());
+						}
+					}
+					if(cc.getDesignation() != null && cc.getDesignation().getId() != null && cc.getDesignation().getId() > 0){
+						cc.setDesignationId(cc.getDesignation().getId());
+						if(cc.getDesignation().getDesignation().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNoneBlank(cc.getOtherDesignation())){
+							cc.setOccupationStr(cc.getOccupationStr()+" ("+cc.getOtherDesignation()+")");
+						}else{
+							cc.setOccupationStr(cc.getOccupationStr()+" ("+cc.getDesignation().getDesignation()+")");
+						}
+					}
+					occupationList.add(cc);
+					occupations = occupationList;
+				}else if(occupations.size() == 1){
+					List<CandidateOccupation> occupationList = new ArrayList<>(2);
+					CandidateOccupation cc = occupations.get(0);
+					if(cc.getOccupation() != null && cc.getOccupation().getId() != null && cc.getOccupation().getId() > 0){
+						cc.setOccupationId(cc.getOccupation().getId());
+						if(cc.getOccupation().getOccupation().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNoneBlank(cc.getOtherOccupation())){
+							cc.setOccupationStr(cc.getOtherOccupation());
+						}else{
+							cc.setOccupationStr(cc.getOccupation().getOccupation());
+						}
+					}
+					if(cc.getDesignation() != null && cc.getDesignation().getId() != null && cc.getDesignation().getId() > 0){
+						cc.setDesignationId(cc.getDesignation().getId());
+						if(cc.getDesignation().getDesignation().equalsIgnoreCase(GConstants.SpecifyOther) && StringUtils.isNoneBlank(cc.getOtherDesignation())){
+							cc.setOccupationStr(cc.getOccupationStr()+" ("+cc.getOtherDesignation()+")");
+						}else{
+							cc.setOccupationStr(cc.getOccupationStr()+" ("+cc.getDesignation().getDesignation()+")");
+						}
+					}
+					occupationList.add(cc);
+					occupationList.add(new CandidateOccupation());
+					occupations = occupationList;
+				}
+			}else{
+				occupations = new ArrayList<>(2);
+				occupations.add(new CandidateOccupation());
+				occupations.add(new CandidateOccupation());
+			}
+			eduOccuInfo.setOccupations(occupations);
+			
+			if(CollectionUtils.isNotEmpty(occupations) && occupations.size() > 0){
+				if(candidate.getYearlyIncome() != null){
+					eduOccuInfo.setYearlyIncomeId(candidate.getYearlyIncome().getId());
+					eduOccuInfo.setYearlyIncomeStr(candidate.getYearlyIncome().getYearlyIncome());
+				}
+			}
+		}
+		eduOccuInfo.setOccupationOptions(masterOccupationDao.findByStatusOrderBySequenceNumber(StatusEnum.Active.toString()));
+		eduOccuInfo.setDegreeOptions(masterDegreeDao.findByStatusOrderBySequenceNumber(StatusEnum.Active.toString()));
+		eduOccuInfo.setDesignationOptions(masterDesignationDao.findByStatusOrderBySequenceNumber(StatusEnum.Active.toString()));
+		eduOccuInfo.setSpecializationOptions(masterDegreeSpecializationDao.findByStatusOrderBySequenceNumber(StatusEnum.Active.toString()));
+		eduOccuInfo.setYearlyIncomeOptions(masterYearlyIncomeDao.findByStatusOrderBySequenceNumber(StatusEnum.Active.toString()));
+		return eduOccuInfo;
+	}
+	
+	public List<CandidateEducation> getEducationsInfoFromUI(EduOccuInfo eduOccuInfo){
+		List<CandidateEducation> educations = new ArrayList<>(2);
+		if(eduOccuInfo != null){
+			for (CandidateEducation cc : eduOccuInfo.getEducations()) {
+				if(cc.getId() != null){
+					CandidateEducation existingCE = candidateEducationDao.findOne(cc.getId());
+					if(cc.getDegreeId() != null && cc.getDegreeId() > 0)
+						existingCE.setDegree(masterDegreeDao.findOne(cc.getDegreeId()));
+					else
+						existingCE.setDegree(null);
+					//existingCE.setDegreeId(cc.getDegreeId());
+					if(cc.getSpecializationId() != null && cc.getSpecializationId() > 0)
+						existingCE.setSpecialization(masterDegreeSpecializationDao.findOne(cc.getSpecializationId()));
+					else
+						existingCE.setSpecialization(null);
+					//existingCE.setSpecializationId(cc.getSpecializationId());
+					//existingCE.setOtherDegree(cc.getOtherDegree());
+					//existingCE.setOtherSpecialization(cc.getOtherSpecialization());
+					educations.add(existingCE);
+				}else{
+					if(cc.getDegreeId() != null && cc.getDegreeId() > 0){
+						cc.setDegree(masterDegreeDao.findOne(cc.getDegreeId()));
+						if(cc.getSpecializationId() != null && cc.getSpecializationId() > 0)
+							cc.setSpecialization(masterDegreeSpecializationDao.findOne(cc.getSpecializationId()));
+						else
+							cc.setSpecialization(null);
+						cc.setCreateOn(DateUtils.now());
+						cc.setStatus(StatusEnum.Active.toString());
+						cc.setUpdateOn(DateUtils.now());
+						educations.add(cc);
+					}
+				}
+			}
+		}
+		return educations;
+	}
+	
+	public List<CandidateOccupation> getOccupationsInfoFromUI(EduOccuInfo eduOccuInfo){
+		List<CandidateOccupation> occupations = new ArrayList<>(2);
+		if(eduOccuInfo != null){
+			for (CandidateOccupation cc : eduOccuInfo.getOccupations()) {
+				if(cc.getId() != null){
+					CandidateOccupation existingCO = candidateOccupationDao.findOne(cc.getId());
+					if(cc.getOccupationId() != null && cc.getOccupationId() > 0)
+						existingCO.setOccupation(masterOccupationDao.findOne(cc.getOccupationId()));
+					else
+						existingCO.setOccupation(null);
+					//existingCO.setOccupationId(cc.getOccupationId());
+					if(cc.getDesignationId() != null && cc.getDesignationId() > 0)
+						existingCO.setDesignation(masterDesignationDao.findOne(cc.getDesignationId()));
+					else
+						existingCO.setDesignation(null);
+					//existingCO.setDesignationId(cc.getDesignationId());
+					//existingCO.setYearlyIncomeId(cc.getYearlyIncomeId());
+					//existingCO.setOtherOccupation(cc.getOtherOccupation());
+					//existingCO.setOtherDesignation(cc.getOtherDesignation());
+					//existingCO.setDescription(cc.getDescription());
+					occupations.add(existingCO);
+				}else{
+					if(cc.getOccupationId() != null && cc.getOccupationId() > 0){
+						cc.setOccupation(masterOccupationDao.findOne(cc.getOccupationId()));
+						if(cc.getDesignationId() != null && cc.getDesignationId() > 0)
+							cc.setDesignation(masterDesignationDao.findOne(cc.getDesignationId()));
+						else
+							cc.setDesignation(null);
+						if(cc.getYearlyIncomeId() != null && cc.getYearlyIncomeId() > 0)
+							cc.setYearlyIncome(masterYearlyIncomeDao.findOne(cc.getYearlyIncomeId()));
+						else
+							cc.setYearlyIncome(null);
+						cc.setCreateOn(DateUtils.now());
+						cc.setStatus(StatusEnum.Active.toString());
+						cc.setUpdateOn(DateUtils.now());
+						occupations.add(cc);
+					}
+				}
+			}
+		}
+		return occupations;
 	}
 }

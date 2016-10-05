@@ -9,9 +9,13 @@ import org.springframework.stereotype.Service;
 
 import com.blob.dao.CandidateAddressDao;
 import com.blob.dao.CandidateContactDao;
+import com.blob.dao.CandidateEducationDao;
+import com.blob.dao.CandidateOccupationDao;
 import com.blob.model.Candidate;
 import com.blob.model.CandidateAddress;
 import com.blob.model.CandidateContact;
+import com.blob.model.CandidateEducation;
+import com.blob.model.CandidateOccupation;
 
 @Service
 public class ProfileService {
@@ -21,6 +25,12 @@ public class ProfileService {
 	
 	@Resource
 	private CandidateAddressDao candidateAddressDao;
+	
+	@Resource
+	private CandidateEducationDao candidateEducationDao;
+	
+	@Resource
+	private CandidateOccupationDao candidateOccupationDao;
 
 	public List<CandidateContact> saveCandidateContacts(List<CandidateContact> contacts, Candidate c){
 
@@ -47,4 +57,31 @@ public class ProfileService {
 		}
 		return resp;
 	}
+	
+	public List<CandidateEducation> saveCandidateEducation(List<CandidateEducation> educations, Candidate c){
+
+		List<CandidateEducation> resp = new ArrayList<>();
+		if(educations != null && !educations.isEmpty()){
+			for (CandidateEducation candidateEducation : educations) {
+				candidateEducation.setCandidate(c);
+				CandidateEducation savedEducation = candidateEducationDao.save(candidateEducation);
+				resp.add(savedEducation);
+			}
+		}
+		return resp;
+	}
+	
+	public List<CandidateOccupation> saveCandidateOccupation(List<CandidateOccupation> occupations, Candidate c){
+
+		List<CandidateOccupation> resp = new ArrayList<>();
+		if(occupations != null && !occupations.isEmpty()){
+			for (CandidateOccupation candidateOccupation : occupations) {
+				candidateOccupation.setCandidate(c);
+				CandidateOccupation savedOccupation = candidateOccupationDao.save(candidateOccupation);
+				resp.add(savedOccupation);
+			}
+		}
+		return resp;
+	}
+	
 }
