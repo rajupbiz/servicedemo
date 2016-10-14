@@ -7,15 +7,15 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
-import com.blob.dao.CandidateAddressDao;
-import com.blob.dao.CandidateContactDao;
-import com.blob.dao.CandidateEducationDao;
-import com.blob.dao.CandidateOccupationDao;
-import com.blob.model.Candidate;
-import com.blob.model.CandidateAddress;
-import com.blob.model.CandidateContact;
-import com.blob.model.CandidateEducation;
-import com.blob.model.CandidateOccupation;
+import com.blob.dao.candidate.CandidateAddressDao;
+import com.blob.dao.candidate.CandidateContactDao;
+import com.blob.dao.candidate.CandidateEducationDao;
+import com.blob.dao.candidate.CandidateOccupationDao;
+import com.blob.model.candidate.Candidate;
+import com.blob.model.candidate.CandidateAddress;
+import com.blob.model.candidate.CandidateContact;
+import com.blob.model.candidate.CandidateEducation;
+import com.blob.model.candidate.CandidateOccupation;
 
 @Service
 public class ProfileService {

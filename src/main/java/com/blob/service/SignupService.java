@@ -1,5 +1,6 @@
 package com.blob.service;
 
+
 import java.util.Date;
 
 import javax.annotation.Resource;
@@ -8,13 +9,13 @@ import javax.transaction.Transactional.TxType;
 
 import org.springframework.stereotype.Service;
 
-import com.blob.dao.UserDao;
-import com.blob.dao.UserRoleDao;
+import com.blob.dao.common.UserDao;
+import com.blob.dao.common.UserRoleDao;
 import com.blob.dao.master.MasterRoleDao;
 import com.blob.enums.RoleEnum;
 import com.blob.enums.StatusEnum;
-import com.blob.model.User;
-import com.blob.model.UserRole;
+import com.blob.model.common.User;
+import com.blob.model.common.UserRole;
 import com.blob.util.GError;
 import com.blob.util.GResponse;
 

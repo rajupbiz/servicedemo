@@ -10,10 +10,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import com.blob.dao.CandidateAddressDao;
-import com.blob.dao.CandidateContactDao;
-import com.blob.dao.CandidateEducationDao;
-import com.blob.dao.CandidateOccupationDao;
+import com.blob.dao.candidate.CandidateAddressDao;
+import com.blob.dao.candidate.CandidateContactDao;
+import com.blob.dao.candidate.CandidateEducationDao;
+import com.blob.dao.candidate.CandidateOccupationDao;
+import com.blob.dao.common.GPhotoDao;
 import com.blob.dao.master.MasterBloodGroupDao;
 import com.blob.dao.master.MasterCountryDao;
 import com.blob.dao.master.MasterDayOfWeekDao;
@@ -25,20 +26,29 @@ import com.blob.dao.master.MasterOccupationDao;
 import com.blob.dao.master.MasterRelationshipDao;
 import com.blob.dao.master.MasterStateDao;
 import com.blob.dao.master.MasterYearlyIncomeDao;
+import com.blob.enums.PhotoCategoryEnum;
 import com.blob.enums.StatusEnum;
-import com.blob.model.Candidate;
-import com.blob.model.CandidateAddress;
-import com.blob.model.CandidateAstroDetail;
-import com.blob.model.CandidateContact;
-import com.blob.model.CandidateEducation;
-import com.blob.model.CandidateFamily;
-import com.blob.model.CandidateOccupation;
-import com.blob.model.CandidatePersonalDetail;
+import com.blob.model.candidate.Candidate;
+import com.blob.model.candidate.CandidateAddress;
+import com.blob.model.candidate.CandidateAstroDetail;
+import com.blob.model.candidate.CandidateContact;
+import com.blob.model.candidate.CandidateEducation;
+import com.blob.model.candidate.CandidateFamily;
+import com.blob.model.candidate.CandidateOccupation;
+import com.blob.model.candidate.CandidatePersonalDetail;
+import com.blob.model.candidate.CandidateShortlistedProfile;
+import com.blob.model.common.GMessage;
+import com.blob.model.common.GPhoto;
+import com.blob.model.common.User;
 import com.blob.model.ui.ContactInfo;
 import com.blob.model.ui.DashboardInfo;
 import com.blob.model.ui.EduOccuInfo;
 import com.blob.model.ui.FamilyInfo;
+import com.blob.model.ui.Message;
 import com.blob.model.ui.PersonalInfo;
+import com.blob.model.ui.Photo;
+import com.blob.model.ui.PhotoInfo;
+import com.blob.model.ui.ShortlistedProfile;
 import com.blob.util.DateUtils;
 import com.blob.util.GConstants;
 import com.blob.util.GConverter;
@@ -94,6 +104,15 @@ public class UIService {
 	
 	@Resource
 	private UiUtils uiUtils;
+	
+	@Resource
+	private CommonService commonService;
+	
+	@Resource
+	private CandidateService candidateService;
+	
+	@Resource
+	private GPhotoDao gPhotoDao;
 	
 	public PersonalInfo getPersonalInfoSectionForUI(Candidate candidate){
 		PersonalInfo pi = new PersonalInfo();
@@ -383,8 +402,8 @@ public class UIService {
 				dashboard.setCurrentLocation(uiUtils.getAddressCityOrTown(addresses));
 				dashboard.setContact(uiUtils.getContactTxt(contacts));
 			}
-			dashboard.setMessages(uiUtils.getMessages(candidate.getCandidateMessages()));
-			dashboard.setShortlistedProfiles(uiUtils.getShortlistedProfiles(candidate.getShortlistedCandidates()));
+			dashboard.setMessages(getMessagesForUI(candidate));
+			dashboard.setShortlistedProfiles(getShortlistedProfilesForUI(candidate));
 		}
 		return dashboard;
 	}
@@ -707,5 +726,97 @@ public class UIService {
 			}
 		}
 		return occupations;
+	}
+	
+	public List<ShortlistedProfile> getShortlistedProfilesForUI(Candidate candidate){
+		List<ShortlistedProfile> shortlistedProfiles = null;
+		List<CandidateShortlistedProfile> candidateProfiles = candidate.getShortlistedCandidates();
+		if(CollectionUtils.isNotEmpty(candidateProfiles)){
+			shortlistedProfiles = new ArrayList<>();
+			ShortlistedProfile p = null;
+			for (CandidateShortlistedProfile profile : candidateProfiles) {
+				if(profile != null){
+					p = new ShortlistedProfile();
+					p.setFullName(candidate.getCandidatePersonalDetail().getFirstName() + " " + candidate.getCandidatePersonalDetail().getLastName());
+					p.setDateOfBirth(DateUtils.toDDMMYYYY(DateUtils.toLocalDate(candidate.getCandidateAstroDetail().getBirthDate())));
+					p.setAddress(uiUtils.getAddressCityOrTown(candidate.getCandidateAddresses()));
+					p.setOccupation(uiUtils.getPrimaryOccupation(candidate.getCandidateOccupations()));
+					shortlistedProfiles.add(p);
+				}
+			}
+		}
+		return shortlistedProfiles;
+	}
+	
+	public List<Message> getMessagesForUI(Candidate fromCandidate){
+		List<Message> messages = null;
+		List<GMessage> gmessages = candidateService.getCandidateMessages(fromCandidate);
+		if(CollectionUtils.isNotEmpty(gmessages)){
+			messages = new ArrayList<>();
+			Message m = null;
+			for (GMessage message : gmessages) {
+				if(message != null){
+					m = new Message();
+					m.setMessageId(message.getId());
+					m.setFrom(fromCandidate.getCandidatePersonalDetail().getFirstName() + " " + fromCandidate.getCandidatePersonalDetail().getLastName());
+					m.setSubject(message.getSubject());
+					m.setBody(message.getBody());
+					m.setDateReceived(DateUtils.toDDMMYYYY(DateUtils.toLocalDate(message.getCreateOn())));
+					messages.add(m);
+				}
+			}
+		}
+		return messages;
+	}
+	
+	public PhotoInfo getPhotoInfoSectionForUI(Candidate candidate){
+		PhotoInfo pi = new PhotoInfo();
+		if(candidate != null){
+			List<GPhoto> gPhotos = candidateService.getCandidatePhotos(candidate);
+			if(CollectionUtils.isNotEmpty(gPhotos)){
+				List<Photo> photos = new ArrayList<>();
+				for (GPhoto gPhoto : gPhotos) {
+					if(gPhoto != null){
+						Photo p = new Photo();
+						p.setPhotoId(gPhoto.getId());
+						p.setIsActive(true);
+						p.setIsPrimary(gPhoto.getIsCandidatePrimaryPhoto());
+						p.setPath(gPhoto.getPath());
+						photos.add(p);
+					}
+				}
+				pi.setPhotos(photos);
+				pi.setIsUploadAllowed(photos.size() < 2? true:false);
+			}
+		}
+		return pi;
+	}
+	
+	public List<GPhoto> getPhotosInfoFromUI(PhotoInfo photoInfo, User user){
+		List<GPhoto> gPhotos = new ArrayList<>();
+		if(photoInfo != null){
+			for (Photo p : photoInfo.getPhotos()) {
+				GPhoto gp = null;
+				if(p.getPhotoId() != null){
+					gp = gPhotoDao.findOne(p.getPhotoId());
+					gp.setIsCandidatePrimaryPhoto(p.getIsPrimary());
+					if(!p.getIsActive()){
+						gp.setStatus(StatusEnum.Inactive.toString());
+					}
+					gp.setUpdateOn(DateUtils.now());
+					gPhotos.add(gp);
+				}else{
+					gp = new GPhoto();
+					gp.setUser(user);
+					gp.setCategory(PhotoCategoryEnum.Candidate.toString());
+					gp.setIsCandidatePrimaryPhoto(p.getIsPrimary());
+					gp.setStatus(StatusEnum.Active.toString());
+					gp.setPath(p.getPath());
+					gp.setUpdateOn(DateUtils.now());
+					gPhotos.add(gp);
+				}
+			}
+		}
+		return gPhotos;
 	}
 }

@@ -4,8 +4,8 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
-import com.blob.dao.UserDao;
-import com.blob.model.User;
+import com.blob.dao.common.UserDao;
+import com.blob.model.common.User;
 
 @Service
 public class UserService {

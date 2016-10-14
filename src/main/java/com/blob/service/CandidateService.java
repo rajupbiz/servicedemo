@@ -1,16 +1,22 @@
 package com.blob.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import com.blob.dao.CandidateDao;
+import com.blob.dao.candidate.CandidateDao;
+import com.blob.enums.MessageCategoryEnum;
+import com.blob.enums.PhotoCategoryEnum;
 import com.blob.enums.StatusEnum;
-import com.blob.model.Candidate;
-import com.blob.model.User;
+import com.blob.model.candidate.Candidate;
+import com.blob.model.common.GMessage;
+import com.blob.model.common.GPhoto;
+import com.blob.model.common.User;
 import com.blob.util.DateUtils;
 import com.blob.util.GUtils;
 
@@ -55,5 +61,38 @@ public class CandidateService {
 			c = candidateDao.save(c);
 		}
 		return c;
+	}
+	
+	public List<GMessage> getCandidateMessages(Candidate candidate){
+		
+		List<GMessage> messages = new ArrayList<>();
+		List<GMessage> userMessages = candidate.getUser().getMessages();
+		if(CollectionUtils.isNotEmpty(userMessages)){
+			for (GMessage gMessage : userMessages) {
+				if(gMessage != null 
+						&& gMessage.getStatus().equalsIgnoreCase(StatusEnum.Active.toString())
+						&& gMessage.getCategory().equalsIgnoreCase(MessageCategoryEnum.Candidate.toString())){
+					messages.add(gMessage);
+				}
+			}
+		}
+		return messages;
+	}
+	
+	public List<GPhoto> getCandidatePhotos(Candidate candidate){
+		
+		List<GPhoto> photos = null;
+		List<GPhoto> userPhotos = candidate.getUser().getPhotos();
+		if(CollectionUtils.isNotEmpty(userPhotos)){
+			photos = new ArrayList<>();
+			for (GPhoto gPhoto : userPhotos) {
+				if(gPhoto != null 
+						&& gPhoto.getStatus().equalsIgnoreCase(StatusEnum.Active.toString()) 
+						&& gPhoto.getCategory().equalsIgnoreCase(PhotoCategoryEnum.Candidate.toString())){
+					photos.add(gPhoto);
+				}
+			}
+		}
+		return photos;
 	}
 }
