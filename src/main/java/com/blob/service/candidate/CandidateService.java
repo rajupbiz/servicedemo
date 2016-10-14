@@ -1,4 +1,4 @@
-package com.blob.service;
+package com.blob.service.candidate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

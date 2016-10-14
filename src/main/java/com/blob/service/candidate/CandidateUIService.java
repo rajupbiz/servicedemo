@@ -1,4 +1,4 @@
-package com.blob.service;
+package com.blob.service.candidate;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -49,13 +49,14 @@ import com.blob.model.ui.PersonalInfo;
 import com.blob.model.ui.Photo;
 import com.blob.model.ui.PhotoInfo;
 import com.blob.model.ui.ShortlistedProfile;
+import com.blob.service.common.CommonService;
 import com.blob.util.DateUtils;
 import com.blob.util.GConstants;
 import com.blob.util.GConverter;
 import com.blob.util.UiUtils;
 
 @Service
-public class UIService {
+public class CandidateUIService {
 	
 	@Resource
 	private MasterBloodGroupDao masterBloodGroupDao;

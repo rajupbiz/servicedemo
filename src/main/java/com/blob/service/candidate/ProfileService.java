@@ -1,4 +1,4 @@
-package com.blob.service;
+package com.blob.service.candidate;
 
 import java.util.ArrayList;
 import java.util.List;

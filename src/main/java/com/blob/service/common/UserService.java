@@ -1,4 +1,4 @@
-package com.blob.service;
+package com.blob.service.common;
 
 import javax.annotation.Resource;
 
